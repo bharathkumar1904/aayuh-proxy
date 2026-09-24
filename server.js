@@ -18,9 +18,10 @@ function setCORS(res, origin) {
 
 function proxyToML(req, res, path, body) {
   const mlUrl = new URL(ML_API_URL);
+  const isHttps = mlUrl.protocol === 'https:';
   const options = {
     hostname: mlUrl.hostname,
-    port:     mlUrl.port || 80,
+    port:     mlUrl.port || (isHttps ? 443 : 80),
     path:     path,
     method:   'POST',
     headers: {
@@ -123,21 +124,22 @@ const server = createServer((req, res) => {
     }
 
     // ML API proxy endpoints
-    if (req.method === 'POST' && req.url === '/predict') {
+    if (req.method === 'POST' && urlPath === '/predict') {
       proxyToML(req, res, '/predict', body);
       return;
     }
-    if (req.method === 'GET' && req.url === '/symptoms') {
+    if (req.method === 'GET' && urlPath === '/symptoms') {
       proxyToML(req, res, '/symptoms', '');
       return;
     }
-    if (req.method === 'POST' && req.url === '/triage') {
+    if (req.method === 'POST' && urlPath === '/triage') {
       proxyToML(req, res, '/triage', body);
       return;
     }
 
-    // Groq chat endpoint
-    if (req.method === 'POST' && req.url === '/chat') {
+    // Groq chat endpoint (handle query params)
+    const urlPath = req.url.split('?')[0];
+    if (req.method === 'POST' && urlPath === '/chat') {
       proxyToGroq(req, res, body);
       return;
     }
