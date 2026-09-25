@@ -7,6 +7,7 @@ config();
 
 const PORT           = process.env.PORT || 3001;
 const GROQ_API_KEY   = process.env.GROQ_API_KEY || '';
+const GROQ_MODEL     = process.env.GROQ_MODEL || 'openai/gpt-oss-20b';
 const ML_API_URL     = process.env.ML_API_URL || 'http://localhost:5000';
 
 function setCORS(res, origin) {
@@ -58,7 +59,7 @@ function proxyToGroq(req, res, body) {
 
   const payload = JSON.parse(body);
   const groqBody = JSON.stringify({
-    model:       payload.model       || 'llama-3.3-70b-versatile',
+    model:       GROQ_MODEL,
     messages:    payload.messages    || [],
     temperature: payload.temperature ?? 0.4,
     max_tokens:  payload.max_tokens  ?? 1200,
@@ -71,6 +72,7 @@ function proxyToGroq(req, res, body) {
     headers: {
       'Content-Type':   'application/json',
       'Authorization':  `Bearer ${GROQ_API_KEY}`,
+      'User-Agent':     'AAYUH-Proxy/1.0',
       'Content-Length': Buffer.byteLength(groqBody),
     },
   };
